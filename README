@@ -1,0 +1,24 @@
+Tasks:
+
+* compile
+* edoc
+* dialyzer
+* app
+* leex
+* yecc
+* test
+* start
+* dist
+
+Dependencies:
+
+* start -> test
+* test -> app
+* app -> compile, leex, yecc
+* dist -> test, edoc
+
+
+Syntax:
+
+merlke compile 
+

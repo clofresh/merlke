@@ -1,0 +1,20 @@
+#!/bin/bash
+
+MERLKE_DIR=$(pwd)
+MERLKE_WORKSPACE=/tmp/merlke_$(echo -n "$MERLKE_DIR" | md5)
+COMPILE_ERROR_LOG=$MERLKE_WORKSPACE/compile.log
+
+mkdir -p "$MERLKE_WORKSPACE"
+rm -f "$COMPILE_ERROR_LOG"
+erlc $MERLKE_DIR/merlkefile.erl -o "$MERLKE_WORKSPACE" 2>&1 > "$COMPILE_ERROR_LOG"
+
+if [ "$?" != "0" ] 
+then
+    cat $MERLKE_WORKSPACE/compile.log
+    exit 1
+else
+    erl -pa "$MERLKE_WORKSPACE" -pa ebin -noshell -run merlke execute $@ -run init stop
+fi
+
+
+
