@@ -13,7 +13,7 @@ then
     cat $MERLKE_WORKSPACE/compile.log
     exit 1
 else
-    erl -pa "$MERLKE_WORKSPACE" -pa ebin -noshell -run merlke execute $@ -run init stop
+    erl -pa "$MERLKE_WORKSPACE" -pa ebin -noshell -run merlke_runner execute $@ -run init stop
 fi
 
 
