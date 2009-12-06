@@ -19,34 +19,48 @@ execute(Targets) ->
     io:format("Executing ~p~n~n", [Targets]),
     execute(hd(Targets), tl(Targets), sets:new()).
 
-execute(CurrentTarget, TargetsToExecute, ExecutedTargets) ->
-    ExecutedTargets2 = case dependencies(CurrentTarget) of
-        [] -> 
-            ExecutedTargets;
-        Dependencies ->
-            % Execute dependencies first
-            sets:union(ExecutedTargets, execute(hd(Dependencies), tl(Dependencies), ExecutedTargets))
-    end,
+remove_duplicates(Elements) ->
+    remove_duplicates(hd(Elements), tl(Elements), sets:new(), []).
+
+remove_duplicates(Element, [], SeenAlready, Result) ->
+    case sets:is_element(Element, SeenAlready) of
+        true ->
+            lists:reverse(Result);
+        false ->
+            lists:reverse([Element] ++ Result)
+    end;
+
+remove_duplicates(Element, [Next | Rest], SeenAlready, Result) ->
+    case sets:is_element(Element, SeenAlready) of
+        true ->
+            remove_duplicates(Next, Rest, SeenAlready, Result);
+        false ->
+            remove_duplicates(Next, Rest, sets:add_element(Element, SeenAlready), [Element] ++ Result)
+    end.
+
+execute(Target, ExecutedAlready) ->
+    % Execute a single target if it hasn't been executed already
     
-    ExecutedTargets3 = case sets:is_element(CurrentTarget, ExecutedTargets2) of
+    case sets:is_element(Target, ExecutedAlready) of
         true -> 
             % Already executed, don't do anything
-            ExecutedTargets2;
+            ExecutedAlready;
         false -> 
-            Command = string:join([atom_to_list(?MODULE), ":", CurrentTarget, "()."], ""),
+            Command = string:join([atom_to_list(?MODULE), ":", Target, "()."], ""),
             io:format("==== ~s~n", [Command]),
             meta:eval(Command, []),
             io:format("~n"),
 
-            sets:add_element(CurrentTarget, ExecutedTargets2)
-    end,
-        
-    case TargetsToExecute of 
-        [] -> ExecutedTargets3;
-        _  -> execute(hd(TargetsToExecute), tl(TargetsToExecute), ExecutedTargets3)
+            sets:add_element(Target, ExecutedAlready)
     end.
-
-
+    
+execute(CurrentTarget, [], ExecutedTargets) ->
+    execute(CurrentTarget, ExecutedTargets);
+    
+execute(CurrentTarget, TargetsToExecute, ExecutedTargets) ->
+    [Next | Rest] = remove_duplicates(lists:append(dependencies(CurrentTarget), TargetsToExecute)),
+    ExecutedTargets2 = execute(CurrentTarget, ExecutedTargets),
+    execute(Next, Rest, ExecutedTargets2).
 
 compile() ->
     io:format("compile~n").
