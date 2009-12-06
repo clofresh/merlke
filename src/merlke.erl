@@ -1,5 +1,6 @@
 -module(merlke).
 -export([
+    clean/0,
     compile/0,
     edoc/0,
     dialyzer/0,
@@ -12,8 +13,23 @@
     dependencies/1
 ]).
 
+-define(MAKE_OPTIONS, [{outdir, merlkefile:ebin_dir()}]).
+
+clean() -> 
+    lists:foreach(fun(Module) -> 
+                    File = lists:concat([merlkefile:ebin_dir(), "/", Module, ".beam"]),
+                    io:format("Removing ~s~n", [File]),
+                    file:delete(File)
+                  end,
+                  merlkefile:modules()).
+
 compile() ->
-    io:format("compile~n").
+    ToCompile = lists:map(fun(Module) -> 
+                            lists:concat([merlkefile:src_dir(), "/", Module, ".erl"])
+                          end,
+                          merlkefile:modules()),
+
+    make:files(ToCompile, ?MAKE_OPTIONS).
 
 edoc() ->
     io:format("edoc~n").

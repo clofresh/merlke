@@ -6,7 +6,7 @@ COMPILE_ERROR_LOG=$MERLKE_WORKSPACE/compile.log
 
 mkdir -p "$MERLKE_WORKSPACE"
 rm -f "$COMPILE_ERROR_LOG"
-erlc $MERLKE_DIR/merlkefile.erl -o "$MERLKE_WORKSPACE" 2>&1 > "$COMPILE_ERROR_LOG"
+erlc -o "$MERLKE_WORKSPACE" $MERLKE_DIR/merlkefile.erl 2>&1 > "$COMPILE_ERROR_LOG"
 
 if [ "$?" != "0" ] 
 then
