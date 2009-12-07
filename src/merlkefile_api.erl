@@ -1,5 +1,5 @@
 -module(merlkefile_api).
--export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0, leex/0, yecc/0, app_file/0]).
+-export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0, leex/0, yecc/0, app_file/0, app_name/0]).
 
 -define(BUILDFILE, merlkefile).
 
@@ -22,3 +22,13 @@ modules() ->
 leex() -> run_safely(leex).
 yecc() -> run_safely(yecc).
 app_file() -> run_safely(app_file).
+app_name() -> 
+    {ok, AppData} = file:consult(app_file()),
+    case AppData of
+        [{application, AppName, _Config}] ->
+            AppName;
+        _ ->
+            io:format("Error: ~s is invalid~n", [app_file()]),
+            halt(1)
+    end.
+
