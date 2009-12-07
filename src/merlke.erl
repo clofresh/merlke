@@ -41,7 +41,8 @@ dialyzer() ->
     io:format("dialyzer~n").
 
 app() ->
-    io:format("app~n").
+    io:format("Copying ~s to ~s~n", [merlkefile:app(), merlkefile:ebin_dir()]),
+    file:copy(merlkefile:app(), merlkefile:ebin_dir()).
 
 leex() ->
     ToCompile = lists:map(fun(F) -> 
