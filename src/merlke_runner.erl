@@ -8,13 +8,20 @@ execute(Targets) ->
     io:format("Executing ~p~n~n", [Targets]),
     execute(hd(Targets), tl(Targets), sets:new()).
 
-execute(CurrentTarget, [], ExecutedTargets) ->
-    execute(CurrentTarget, ExecutedTargets);
-    
 execute(CurrentTarget, TargetsToExecute, ExecutedTargets) ->
-    [Next | Rest] = remove_duplicates(lists:append(merlke:dependencies(CurrentTarget), TargetsToExecute)),
-    ExecutedTargets2 = execute(CurrentTarget, ExecutedTargets),
-    execute(Next, Rest, ExecutedTargets2).
+    %io:format("CurrentTarget: ~p, TargetsToExecute: ~p, ExecutedTargets: ~p ~n", [CurrentTarget, TargetsToExecute, sets:to_list(ExecutedTargets)]),   
+    [Next | Rest] = remove_duplicates(lists:append([merlke:dependencies(CurrentTarget), [CurrentTarget], TargetsToExecute]), ExecutedTargets),
+    case Next of 
+        CurrentTarget ->
+            ExecutedTargets2 = execute(CurrentTarget, ExecutedTargets),
+    
+            case Rest of
+                [] -> ExecutedTargets2;
+                _  -> execute(hd(Rest), tl(Rest), ExecutedTargets2)
+            end;
+        _ -> 
+            execute(Next, Rest, ExecutedTargets)
+    end.
 
 execute(Target, ExecutedAlready) ->
     % Execute a single target if it hasn't been executed already
@@ -32,8 +39,8 @@ execute(Target, ExecutedAlready) ->
             sets:add_element(Target, ExecutedAlready)
     end.
     
-remove_duplicates(Elements) ->
-    remove_duplicates(hd(Elements), tl(Elements), sets:new(), []).
+remove_duplicates(Elements, Exclude) ->
+    remove_duplicates(hd(Elements), tl(Elements), Exclude, []).
 
 remove_duplicates(Element, [], SeenAlready, Result) ->
     case sets:is_element(Element, SeenAlready) of
