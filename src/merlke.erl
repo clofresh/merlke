@@ -25,10 +25,8 @@ clean() ->
                   merlkefile_api:modules()).
 
 compile() ->
-    ToCompile = lists:map(fun(Module) -> 
-                            lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"])
-                          end,
-                          merlkefile_api:modules()),
+    ToCompile = [lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"])
+                    || Module <- merlkefile_api:modules()],
 
     make:files(ToCompile, ?MAKE_OPTIONS).
 
