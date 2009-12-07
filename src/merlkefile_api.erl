@@ -1,5 +1,5 @@
 -module(merlkefile_api).
--export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0, leex/0, yecc/0, app/0]).
+-export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0, leex/0, yecc/0, app_file/0]).
 
 -define(BUILDFILE, merlkefile).
 
@@ -21,4 +21,4 @@ modules() ->
     [re:replace(M, "\\.erl", "", [{return, list}]) || M <- run_safely(modules)].
 leex() -> run_safely(leex).
 yecc() -> run_safely(yecc).
-app() -> run_safely(app).
+app_file() -> run_safely(app_file).
