@@ -15,19 +15,22 @@
 
 -define(MAKE_OPTIONS, [{outdir, merlkefile:ebin_dir()}]).
 
+modules() ->
+    [re:replace(M, "\\.erl", "", [{return, list}]) || M <- merlkefile:modules()].
+
 clean() -> 
     lists:foreach(fun(Module) -> 
                     File = lists:concat([merlkefile:ebin_dir(), "/", Module, ".beam"]),
                     io:format("Removing ~s~n", [File]),
                     file:delete(File)
                   end,
-                  merlkefile:modules()).
+                  modules()).
 
 compile() ->
     ToCompile = lists:map(fun(Module) -> 
                             lists:concat([merlkefile:src_dir(), "/", Module, ".erl"])
                           end,
-                          merlkefile:modules()),
+                          modules()),
 
     make:files(ToCompile, ?MAKE_OPTIONS).
 
@@ -41,10 +44,23 @@ app() ->
     io:format("app~n").
 
 leex() ->
-    io:format("leex~n").
+    ToCompile = lists:map(fun(F) -> 
+                            leex:file(F),
+                            re:replace(F, "\\.xrl", "", [{return, list}])
+                          end,
+                          merlkefile:leex()),
+
+    make:files(ToCompile, ?MAKE_OPTIONS).
 
 yecc() ->
-    io:format("yecc~n").
+    ToCompile = lists:map(fun(F) -> 
+                            yecc:file(F),
+                            re:replace(F, "\\.yrl", "", [{return, list}])
+                          end,
+                          merlkefile:yecc()),
+
+    make:files(ToCompile, ?MAKE_OPTIONS).
+
 
 test() ->
     io:format("test~n").
