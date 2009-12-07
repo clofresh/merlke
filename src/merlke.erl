@@ -13,24 +13,21 @@
     dependencies/1
 ]).
 
--define(MAKE_OPTIONS, [{outdir, merlkefile:ebin_dir()}]).
-
-modules() ->
-    [re:replace(M, "\\.erl", "", [{return, list}]) || M <- merlkefile:modules()].
+-define(MAKE_OPTIONS, [{outdir, merlkefile_api:ebin_dir()}]).
 
 clean() -> 
     lists:foreach(fun(Module) -> 
-                    File = lists:concat([merlkefile:ebin_dir(), "/", Module, ".beam"]),
+                    File = lists:concat([merlkefile_api:ebin_dir(), "/", Module, ".beam"]),
                     io:format("Removing ~s~n", [File]),
                     file:delete(File)
                   end,
-                  modules()).
+                  merlkefile_api:modules()).
 
 compile() ->
     ToCompile = lists:map(fun(Module) -> 
-                            lists:concat([merlkefile:src_dir(), "/", Module, ".erl"])
+                            lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"])
                           end,
-                          modules()),
+                          merlkefile_api:modules()),
 
     make:files(ToCompile, ?MAKE_OPTIONS).
 
@@ -41,15 +38,15 @@ dialyzer() ->
     io:format("dialyzer~n").
 
 app() ->
-    io:format("Copying ~s to ~s~n", [merlkefile:app(), merlkefile:ebin_dir()]),
-    file:copy(merlkefile:app(), merlkefile:ebin_dir()).
+    io:format("Copying ~s to ~s~n", [merlkefile_api:app(), merlkefile_api:ebin_dir()]),
+    file:copy(merlkefile_api:app(), merlkefile_api:ebin_dir()).
 
 leex() ->
     ToCompile = lists:map(fun(F) -> 
                             leex:file(F),
                             re:replace(F, "\\.xrl", "", [{return, list}])
                           end,
-                          merlkefile:leex()),
+                          merlkefile_api:leex()),
 
     make:files(ToCompile, ?MAKE_OPTIONS).
 
@@ -58,7 +55,7 @@ yecc() ->
                             yecc:file(F),
                             re:replace(F, "\\.yrl", "", [{return, list}])
                           end,
-                          merlkefile:yecc()),
+                          merlkefile_api:yecc()),
 
     make:files(ToCompile, ?MAKE_OPTIONS).
 
