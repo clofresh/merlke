@@ -64,7 +64,8 @@ yecc() ->
 
 
 test() ->
-    io:format("test~n").
+    eunit:test([list_to_atom(M) 
+                    || M <- merlkefile_api:modules()]).
 
 start() ->
     application:start(merlkefile_api:app_name()).
