@@ -14,6 +14,7 @@
 ]).
 
 -define(MAKE_OPTIONS, [{outdir, merlkefile_api:ebin_dir()}]).
+-define(EDOC_OPTIONS, [{dir, merlkefile_api:edoc_dir()}]).
 
 clean() -> 
     lists:foreach(fun(Module) -> 
@@ -32,7 +33,11 @@ compile() ->
     make:files(ToCompile, ?MAKE_OPTIONS).
 
 edoc() ->
-    io:format("edoc~n").
+    io:format("Generating edocs from ~p to ~p~n", [merlkefile_api:src_dir(), 
+                                                   merlkefile_api:edoc_dir()]),
+    edoc:files([lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"]) 
+                    || Module <- merlkefile_api:modules()],
+               ?EDOC_OPTIONS).
 
 dialyzer() ->
     io:format("dialyzer~n").
