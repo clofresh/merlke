@@ -10,7 +10,12 @@ execute(Targets) ->
 
 execute(CurrentTarget, TargetsToExecute, ExecutedTargets) ->
     %io:format("CurrentTarget: ~p, TargetsToExecute: ~p, ExecutedTargets: ~p ~n", [CurrentTarget, TargetsToExecute, sets:to_list(ExecutedTargets)]),   
-    [Next | Rest] = remove_duplicates(lists:append([merlke:dependencies(CurrentTarget), [CurrentTarget], TargetsToExecute]), ExecutedTargets),
+    Targets = lists:append([merlke_dependencies:dependencies(CurrentTarget), 
+                            [CurrentTarget], 
+                            TargetsToExecute]),
+
+    [Next | Rest] = remove_duplicates(Targets, ExecutedTargets),
+
     case Next of 
         CurrentTarget ->
             ExecutedTargets2 = execute(CurrentTarget, ExecutedTargets),

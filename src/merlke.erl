@@ -9,8 +9,7 @@
     yecc/0,
     test/0,
     start/0,
-    dist/0,
-    dependencies/1
+    dist/0
 ]).
 
 -define(MAKE_OPTIONS, [{outdir, merlkefile_api:ebin_dir()}]).
@@ -73,12 +72,4 @@ start() ->
 dist() ->
     io:format("dist~n").
 
-dependencies(Target) ->
-    case Target of
-        "start" -> ["test"];
-        "test"  -> ["app"];
-        "app"   -> ["compile", "leex", "yecc"];
-        "dist"  -> ["test", "edoc"];
-        _       -> []
-    end.
 
