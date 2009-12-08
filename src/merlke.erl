@@ -10,8 +10,6 @@
     dist/0
 ]).
 
--include_lib("kernel/include/file.hrl").
-
 -define(MAKE_OPTIONS, [{outdir, merlkefile_api:ebin_dir()}]).
 -define(EDOC_OPTIONS, [{dir, merlkefile_api:edoc_dir()}]).
 
@@ -31,7 +29,23 @@ compile() ->
     make:files(ToCompile, ?MAKE_OPTIONS).
 
 generate() ->
-    generate({directory, "."}, []).
+    EbinDir = filename:absname(merlkefile_api:ebin_dir()),
+    merlke_files:traversal(
+        {directory, "."}, 
+        [], 
+        fun generate/1,
+        fun(FT) ->
+            case FT of
+                {regular, _} -> 
+                    allow;
+                {directory, Dir} ->
+                    case filename:absname(Dir) of
+                        EbinDir -> skip;
+                        _ -> allow
+                    end
+            end                    
+        end
+    ).
 
 generate(File) ->
     case filename:extension(File) of
@@ -49,73 +63,6 @@ generate(File) ->
             nope
     end.
 
-generate({regular, File}, []) ->
-    generate(File);
-
-generate({directory, Dir}, []) ->
-    EbinDir = filename:absname(merlkefile_api:ebin_dir()),
-    case filename:absname(Dir) of
-        EbinDir ->
-            skip;
-        _ ->
-            case file:list_dir(Dir) of
-                {ok, NewFiles} -> 
-                    [Next | Rest] = [lists:concat([Dir, "/", F]) 
-                                        || F <- NewFiles],
-                    generate(get_file_info(Next), Rest);
-                {error, Reason} ->
-                    io:format("Error: ~p~n", [Reason]),
-                    {error, Reason}
-            end
-    end;
-
-generate({_Other, _File}, []) ->
-    nope;
-
-generate({regular, File}, [Next | Rest]) ->
-    generate(File),
-    generate(get_file_info(Next), Rest);
-    
-generate({directory, Dir}, [Next | Rest]) ->
-    EbinDir = filename:absname(merlkefile_api:ebin_dir()),
-    case filename:absname(Dir) of
-        EbinDir ->
-            generate(get_file_info(Next), Rest);
-        _ ->
-            case file:list_dir(Dir) of
-                {ok, NewFiles} -> 
-                    generate(get_file_info(Next), 
-                                lists:append(
-                                    Rest, 
-                                    [lists:concat([Dir, "/", F]) 
-                                        || F <- NewFiles]
-                                )
-                            );
-                {error, Reason} ->
-                    io:format("Error: ~p~n", [Reason]),
-                    generate(get_file_info(Next), Rest)
-            end
-    end;
-
-generate({_Other, _File}, [Next | Rest]) ->
-    generate(get_file_info(Next), Rest).
-
-get_file_info(File) ->
-    case filename:basename(File) of
-        "." -> 
-            {directory, "."};
-        "." ++ _Other ->
-            {hidden, File};
-        _ ->
-            case file:read_file_info(File) of
-                {ok, FileInfo}  -> 
-                    {FileInfo#file_info.type, File};
-                {error, Reason} -> 
-                    io:format("Error: ~p~n", [Reason]),
-                    {error, Reason}
-            end
-    end.
-    
 edoc() ->
     io:format("Generating edocs from ~p to ~p~n", [merlkefile_api:src_dir(), 
                                                    merlkefile_api:edoc_dir()]),
