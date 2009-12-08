@@ -5,7 +5,6 @@
     generate/0,
     edoc/0,
     dialyzer/0,
-    app/0,
     test/0,
     start/0,
     dist/0
@@ -42,21 +41,32 @@ generate(File) ->
         ".yrl" -> 
             io:format("Generating yecc file: ~s~n", [File]),
             yecc:file(File);
-        _      -> nope
+        ".app" ->
+            EbinDir = merlkefile_api:ebin_dir(),
+            io:format("Copying ~s to ~s~n", [File, EbinDir]),
+            file:copy(File, EbinDir);
+        _      -> 
+            nope
     end.
 
 generate({regular, File}, []) ->
     generate(File);
 
 generate({directory, Dir}, []) ->
-    case file:list_dir(Dir) of
-        {ok, NewFiles} -> 
-            [Next | Rest] = [lists:concat([Dir, "/", F]) 
-                                || F <- NewFiles],
-            generate(get_file_info(Next), Rest);
-        {error, Reason} ->
-            io:format("Error: ~p~n", [Reason]),
-            {error, Reason}
+    EbinDir = filename:absname(merlkefile_api:ebin_dir()),
+    case filename:absname(Dir) of
+        EbinDir ->
+            skip;
+        _ ->
+            case file:list_dir(Dir) of
+                {ok, NewFiles} -> 
+                    [Next | Rest] = [lists:concat([Dir, "/", F]) 
+                                        || F <- NewFiles],
+                    generate(get_file_info(Next), Rest);
+                {error, Reason} ->
+                    io:format("Error: ~p~n", [Reason]),
+                    {error, Reason}
+            end
     end;
 
 generate({_Other, _File}, []) ->
@@ -65,20 +75,26 @@ generate({_Other, _File}, []) ->
 generate({regular, File}, [Next | Rest]) ->
     generate(File),
     generate(get_file_info(Next), Rest);
-
+    
 generate({directory, Dir}, [Next | Rest]) ->
-    case file:list_dir(Dir) of
-        {ok, NewFiles} -> 
-            generate(get_file_info(Next), 
-                        lists:append(
-                            Rest, 
-                            [lists:concat([Dir, "/", F]) 
-                                || F <- NewFiles]
-                        )
-                    );
-        {error, Reason} ->
-            io:format("Error: ~p~n", [Reason]),
-            generate(get_file_info(Next), Rest)
+    EbinDir = filename:absname(merlkefile_api:ebin_dir()),
+    case filename:absname(Dir) of
+        EbinDir ->
+            generate(get_file_info(Next), Rest);
+        _ ->
+            case file:list_dir(Dir) of
+                {ok, NewFiles} -> 
+                    generate(get_file_info(Next), 
+                                lists:append(
+                                    Rest, 
+                                    [lists:concat([Dir, "/", F]) 
+                                        || F <- NewFiles]
+                                )
+                            );
+                {error, Reason} ->
+                    io:format("Error: ~p~n", [Reason]),
+                    generate(get_file_info(Next), Rest)
+            end
     end;
 
 generate({_Other, _File}, [Next | Rest]) ->
@@ -110,16 +126,40 @@ edoc() ->
 dialyzer() ->
     io:format("dialyzer~n").
 
-app() ->
-    io:format("Copying ~s to ~s~n", [merlkefile_api:app_file(), merlkefile_api:ebin_dir()]),
-    file:copy(merlkefile_api:app_file(), merlkefile_api:ebin_dir()).
-
 test() ->
     eunit:test([list_to_atom(M) 
                     || M <- merlkefile_api:modules()]).
 
 start() ->
-    application:start(merlkefile_api:app_name()).
+    EbinDir = merlkefile_api:ebin_dir(),
+    {ok, NewFiles} = file:list_dir(EbinDir),
+    lists:map(
+        fun(F) ->
+            case filename:extension(F) of
+                ".app" ->
+                    case file:consult(F) of
+                        {ok, [{application, AppName, _Config}]} ->
+                            spawn_link(fun() -> 
+                                    io:format("Starting ~s~n", [AppName]),
+                                    application:start(AppName)
+                                  end);
+                        _ ->
+                            io:format("Error: ~s is invalid~n", [F]),
+                            invalid_app_file
+                    end;
+                _ ->
+                    not_app_file
+            end
+        end,
+        [string:join([EbinDir, NF], "/") || NF <- NewFiles]                    
+    ),
+
+    receive 
+        Result ->
+            io:format("Result: ~p~n", [Result])
+    end,
+
+    io:format("Done.~n").
 
 dist() ->
     io:format("dist~n").

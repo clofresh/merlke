@@ -4,9 +4,8 @@
 dependencies(Target) ->
     case Target of
         "start"   -> ["test"];
-        "test"    -> ["app"];
+        "test"    -> ["compile"];
         "compile" -> ["generate"];
-        "app"     -> ["compile"];
         "dist"    -> ["test", "edoc"];
         _         -> []
     end.
