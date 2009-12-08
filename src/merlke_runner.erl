@@ -1,8 +1,8 @@
 -module(merlke_runner).
--export([execute/1]).
+-export([execute/0, execute/1]).
 
-execute("") ->
-    io:format("Must specify a task~n");
+execute() ->
+    execute(["compile"]).
     
 execute(Targets) ->
     io:format("Executing ~p~n~n", [Targets]),
