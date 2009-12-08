@@ -13,46 +13,48 @@ Then put scripts/merlke in your PATH
 
 Usage
 -----
-Create a file called merlkefile.erl in the base directory of your project and define the appropriate callbacks. Then from the command line, run:
+Assuming you follow the standard Erlang file conventions, you can just run:
 
     merlke task1 [task2 [task3 [...]]]
 
-Merlkefile callbacks
---------------------
-* src_dir/0
-* ebin_dir/0
-* edoc_dir/0
-* modules/0
-* leex/0
-* yecc/0
-* app_file/0
+Standard directory structure
+----------------------------
+    doc/      -> generated edocs directory   (edoc_dir/0)
+    ebin/     -> .beam directory             (ebin_dir/0)
+    src/      -> module source directory     (src_dir/0)
+    src/*.erl -> module source files         (modules/0)
+    *.app     -> application files
+    *.xrl     -> leex files
+    *.yrl     -> yecc files 
+
+To override a directory convention, implement the callback in parenthesis 
+in a module called merlkefile.erl in your project's base directory.
+
 
 Tasks
 -----
-
+* clean
 * compile
+* generate
 * edoc
 * dialyzer
-* app
-* leex
-* yecc
 * test
 * start
 * dist
 
-Task Dependencies
+Task dependencies
 -----------------
+    start   -> test
+    test    -> compile
+    compile -> generate
+    dist    -> test, edoc
 
-* start -> test
-* test -> app
-* app -> compile, leex, yecc
-* dist -> test, edoc
-
-Sample merlkefile
+Sample merlkefile.erl
 -----------------
+Merlke will work fine without a merlkefile, but if you want to override the standard files, you can do so by export certain callbacks:
 
     -module(merlkefile).
-    -export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0, leex/0, yecc/0, app_file/0]).
+    -export([src_dir/0, ebin_dir/0, edoc_dir/0, modules/0]).
 
     src_dir() -> "src".
     ebin_dir() -> "ebin".
@@ -60,9 +62,6 @@ Sample merlkefile
     modules() -> 
         {ok, Filenames} = file:list_dir(src_dir()),
         Filenames.
-    leex() -> ["parser/esyslog_config_lexer.xrl"].
-    yecc() -> ["parser/esyslog_config_parser.yrl"].
-    app_file() -> "etc/esyslog.app".
 
 
 
