@@ -10,8 +10,7 @@ run_safely(F) ->
         true ->
             apply(?BUILDFILE, F, []);
         false ->
-            io:format("Error: ~p.erl does not export ~p/0~n", [?BUILDFILE , F]),
-            halt(1)
+            default(F)
     end.
 
 src_dir() -> run_safely(src_dir).
@@ -29,6 +28,22 @@ app_name() ->
             AppName;
         _ ->
             io:format("Error: ~s is invalid~n", [app_file()]),
+            halt(1)
+    end.
+
+default(F) ->
+    case F of 
+        src_dir -> 
+            "src";
+        ebin_dir -> 
+            "ebin";
+        edoc_dir -> 
+            "doc";
+        modules -> 
+            {ok, Filenames} = file:list_dir(src_dir()),
+            Filenames;
+        _ -> 
+            io:format("Error: ~p.erl does not export ~p/0~n", [?BUILDFILE , F]),
             halt(1)
     end.
 
