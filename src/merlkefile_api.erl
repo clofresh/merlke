@@ -23,8 +23,8 @@ edoc_dir() -> run_safely(edoc_dir).
 modules() ->
     [re:replace(M, "\\.erl", "", [{return, list}]) || M <- run_safely(modules)].
 
-default(F) ->
-    case F of 
+default(Function) ->
+    case Function of 
         src_dir -> 
             "src";
         ebin_dir -> 
@@ -33,9 +33,9 @@ default(F) ->
             "doc";
         modules -> 
             {ok, Filenames} = file:list_dir(src_dir()),
-            Filenames;
+            [ F || F <- Filenames, filename:extension(F) =:= ".erl"];
         _ -> 
-            io:format("Error: ~p.erl does not export ~p/0~n", [?BUILDFILE , F]),
+            io:format("Error: ~p.erl does not export ~p/0~n", [?BUILDFILE , Function]),
             halt(1)
     end.
 
