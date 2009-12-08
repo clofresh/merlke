@@ -3,10 +3,11 @@
 
 dependencies(Target) ->
     case Target of
-        "start" -> ["test"];
-        "test"  -> ["app"];
-        "app"   -> ["compile", "leex", "yecc"];
-        "dist"  -> ["test", "edoc"];
-        _       -> []
+        "start"   -> ["test"];
+        "test"    -> ["app"];
+        "compile" -> ["generate"];
+        "app"     -> ["compile"];
+        "dist"    -> ["test", "edoc"];
+        _         -> []
     end.
 
