@@ -5,11 +5,15 @@
 
 run_safely(F) ->
     code:purge(?BUILDFILE),
-    {module, ?BUILDFILE} = code:load_file(?BUILDFILE),
-    case erlang:function_exported(?BUILDFILE, F, 0) of
-        true ->
-            apply(?BUILDFILE, F, []);
-        false ->
+    case code:load_file(?BUILDFILE) of 
+        {module, ?BUILDFILE} ->
+            case erlang:function_exported(?BUILDFILE, F, 0) of
+                true ->
+                    apply(?BUILDFILE, F, []);
+                false ->
+                    default(F)
+            end;
+        {error, nofile} ->
             default(F)
     end.
 
