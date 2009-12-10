@@ -37,10 +37,10 @@ Tasks
 * compile
 * generate
 * edoc
-* dialyzer
+* dialyzer (not yet implemented)
 * test
 * start
-* dist
+* dist  (not yet implemented)
 
 Task dependencies
 -----------------
