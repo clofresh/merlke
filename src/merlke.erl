@@ -26,7 +26,13 @@ compile() ->
     ToCompile = [lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"])
                     || Module <- merlkefile_api:modules()],
 
-    make:files(ToCompile, ?MAKE_OPTIONS).
+    case make:files(ToCompile, ?MAKE_OPTIONS) of
+        up_to_date ->
+            ok;
+        error ->
+            io:format("~n**** Compilation failed.~n"),
+            halt(1)
+    end.
 
 generate() ->
     EbinDir = filename:absname(merlkefile_api:ebin_dir()),
