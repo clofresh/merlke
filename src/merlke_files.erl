@@ -9,7 +9,7 @@ prepare_overview() ->
     case get_file_info("overview.edoc") of 
         {regular, F} -> file:copy(F, TargetOverviewFile);
         _ -> 
-            case get_file_info(string:join([merlkefile_api:src_dir(), "overview.edoc"], "/")) of
+            case get_file_info(filename:join(merlkefile_api:src_dir(), "overview.edoc")) of
                 {regular, F} -> file:copy(F, TargetOverviewFile);
                 _ -> 
                     MarkdownFilesSet = sets:from_list(

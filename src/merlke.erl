@@ -76,7 +76,7 @@ generate({regular, File}) ->
             io:format("Copying ~s to ~s~n", [File, EbinDir]),
             {ok, _ByteCount} = file:copy(
                 File, 
-                string:join([EbinDir, filename:basename(File)], "/")
+                filename:join(EbinDir, filename:basename(File))
             );
         _      -> 
             nope
@@ -125,7 +125,7 @@ start() ->
                     not_app_file
             end
         end,
-        [string:join([EbinDir, NF], "/") || NF <- NewFiles]                    
+        [filename:join(EbinDir, NF) || NF <- NewFiles]                    
     ),
     
     wait(),
