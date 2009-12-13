@@ -59,6 +59,8 @@ traversal(FT = {directory, Dir}, [], FileFun, FilterFun) ->
         allow ->
             FileFun(FT),
             case file:list_dir(Dir) of
+                {ok, []} -> 
+                    ok;
                 {ok, NewFiles} -> 
                     [Next | Rest] = [lists:concat([Dir, "/", F]) 
                                         || F <- NewFiles],
