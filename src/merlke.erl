@@ -79,7 +79,10 @@ generate(FT) ->
                 ".app" ->
                     EbinDir = merlkefile_api:ebin_dir(),
                     io:format("Copying ~s to ~s~n", [File, EbinDir]),
-                    file:copy(File, EbinDir);
+                    {ok, _ByteCount} = file:copy(
+                        File, 
+                        string:join([EbinDir, filename:basename(File)], "/")
+                    );
                 _      -> 
                     nope
             end;
