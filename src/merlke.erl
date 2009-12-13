@@ -51,19 +51,24 @@ generate() ->
         end
     ).
 
-generate(File) ->
-    case filename:extension(File) of
-        ".xrl" -> 
-            io:format("Generating leex file: ~s~n", [File]),
-            leex:file(File);
-        ".yrl" -> 
-            io:format("Generating yecc file: ~s~n", [File]),
-            yecc:file(File);
-        ".app" ->
-            EbinDir = merlkefile_api:ebin_dir(),
-            io:format("Copying ~s to ~s~n", [File, EbinDir]),
-            file:copy(File, EbinDir);
-        _      -> 
+generate(FT) ->
+    case FT of 
+        {regular, File} ->
+            case filename:extension(File) of
+                ".xrl" -> 
+                    io:format("Generating leex file: ~s~n", [File]),
+                    leex:file(File);
+                ".yrl" -> 
+                    io:format("Generating yecc file: ~s~n", [File]),
+                    yecc:file(File);
+                ".app" ->
+                    EbinDir = merlkefile_api:ebin_dir(),
+                    io:format("Copying ~s to ~s~n", [File, EbinDir]),
+                    file:copy(File, EbinDir);
+                _      -> 
+                    nope
+            end;
+        _ ->
             nope
     end.
 

@@ -1,5 +1,5 @@
 -module(merlke_files).
--export([traversal/3, prepare_overview/0]).
+-export([traversal/2, traversal/3, prepare_overview/0]).
 
 -include("include/merlke.hrl").
 -include_lib("kernel/include/file.hrl").
@@ -42,18 +42,22 @@ prepare_overview() ->
             end
     end.
 
+traversal(Root, FileFun) ->
+    traversal(get_file_info(Root), [], FileFun, fun(_) -> allow end).
+
 traversal(Root, FileFun, FilterFun) ->
     traversal(get_file_info(Root), [], FileFun, FilterFun).
 
-traversal(FT = {regular, File}, [], FileFun, FilterFun) ->
+traversal(FT = {regular, _File}, [], FileFun, FilterFun) ->
     case FilterFun(FT) of
-        allow -> FileFun(File);
+        allow -> FileFun(FT);
         _     -> skipped
     end;
 
 traversal(FT = {directory, Dir}, [], FileFun, FilterFun) ->
     case FilterFun(FT) of
         allow ->
+            FileFun(FT),
             case file:list_dir(Dir) of
                 {ok, NewFiles} -> 
                     [Next | Rest] = [lists:concat([Dir, "/", F]) 
@@ -70,9 +74,9 @@ traversal(FT = {directory, Dir}, [], FileFun, FilterFun) ->
 traversal({_Other, _File}, [], _FileFun, _FilterFun) ->
     nope;
 
-traversal(FT = {regular, File}, [Next | Rest], FileFun, FilterFun) ->
+traversal(FT = {regular, _File}, [Next | Rest], FileFun, FilterFun) ->
     case FilterFun(FT) of
-        allow -> FileFun(File);
+        allow -> FileFun(FT);
         _     -> skipped
     end,
     traversal(get_file_info(Next), Rest, FileFun, FilterFun);
@@ -80,6 +84,7 @@ traversal(FT = {regular, File}, [Next | Rest], FileFun, FilterFun) ->
 traversal(FT = {directory, Dir}, [Next | Rest], FileFun, FilterFun) ->
     case FilterFun(FT) of
         allow ->
+            FileFun(FT),
             case file:list_dir(Dir) of
                 {ok, NewFiles} -> 
                     traversal(get_file_info(Next), 
