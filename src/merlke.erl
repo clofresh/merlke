@@ -7,7 +7,9 @@
     dialyzer/0,
     test/0,
     start/0,
-    dist/0
+    dist/0,
+    ebin_dir/0,
+    edoc_dir/0
 ]).
 
 -include("include/merlke.hrl").
@@ -136,4 +138,15 @@ start() ->
 dist() ->
     io:format("dist~n").
 
+ebin_dir() -> make_dir(merlkefile_api:ebin_dir()).
+edoc_dir() -> make_dir(merlkefile_api:edoc_dir()).
 
+make_dir(Dir) ->
+    case file:make_dir(Dir) of
+        ok -> ok;
+        {error, eexist} -> ok;
+        Error -> Error
+    end.
+
+
+    

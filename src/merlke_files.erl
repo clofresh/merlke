@@ -32,7 +32,6 @@ prepare_overview() ->
                                     );
                                 MarkdownFullPath -> 
                                     Html = os:cmd(string:join([MarkdownFullPath, F], " ")),
-                                    file:make_dir(merlkefile_api:edoc_dir()),
                                     {ok, IoDevice} = file:open(TargetOverviewFile, write),
                                     io:put_chars(IoDevice, "@doc "),
                                     io:put_chars(IoDevice, Html),

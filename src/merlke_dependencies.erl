@@ -3,10 +3,12 @@
 
 dependencies(Target) ->
     case Target of
-        "start"   -> ["test"];
-        "test"    -> ["compile"];
-        "compile" -> ["generate"];
-        "dist"    -> ["test", "edoc"];
-        _         -> []
+        "start"    -> ["test"];
+        "test"     -> ["compile"];
+        "compile"  -> ["ebin_dir", "generate"];
+        "generate" -> ["ebin_dir"];
+        "dist"     -> ["test", "edoc"];
+        "edoc"     -> ["edoc_dir"];
+        _          -> []
     end.
 
