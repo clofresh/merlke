@@ -15,24 +15,19 @@
 clean() -> 
     merlke_files:traversal(
         merlkefile_api:ebin_dir(), 
-        fun(FT) ->
-            case FT of
-                {regular, File} ->
-                    DeleteFun = fun(F) ->
-                        io:format("Removing ~s~n", [F]),
-                        file:delete(F)
-                    end,
-                    case filename:extension(File) of
-                        ".beam" ->
-                            DeleteFun(File);
-                        ".app" ->
-                            DeleteFun(File);
-                        _ ->
-                            nope
-                    end;    
-                _ ->
-                    nope
-            end
+        fun
+            ({regular, File}) ->
+                DeleteFun = fun(F) ->
+                    io:format("Removing ~s~n", [F]),
+                    file:delete(F)
+                end,
+                case filename:extension(File) of
+                    ".beam" -> DeleteFun(File);
+                    ".app"  -> DeleteFun(File);
+                    _       -> nope
+                end;    
+            (_) ->
+                nope
         end).
 
 compile() ->
@@ -53,42 +48,38 @@ generate() ->
     merlke_files:traversal(
         ".", 
         fun generate/1,
-        fun(FT) ->
-            case FT of
-                {regular, _} -> 
-                    allow;
-                {directory, Dir} ->
-                    case filename:absname(Dir) of
-                        EbinDir -> skip;
-                        _ -> allow
-                    end
-            end                    
+        fun
+            ({regular, _}) ->
+                allow;
+            ({directory, Dir}) ->
+                case filename:absname(Dir) of
+                    EbinDir -> skip;
+                    _ -> allow
+                end
         end
     ).
 
-generate(FT) ->
-    case FT of 
-        {regular, File} ->
-            case filename:extension(File) of
-                ".xrl" -> 
-                    io:format("Generating leex file: ~s~n", [File]),
-                    leex:file(File);
-                ".yrl" -> 
-                    io:format("Generating yecc file: ~s~n", [File]),
-                    yecc:file(File);
-                ".app" ->
-                    EbinDir = merlkefile_api:ebin_dir(),
-                    io:format("Copying ~s to ~s~n", [File, EbinDir]),
-                    {ok, _ByteCount} = file:copy(
-                        File, 
-                        string:join([EbinDir, filename:basename(File)], "/")
-                    );
-                _      -> 
-                    nope
-            end;
-        _ ->
+generate({regular, File}) ->
+    case filename:extension(File) of
+        ".xrl" -> 
+            io:format("Generating leex file: ~s~n", [File]),
+            leex:file(File);
+        ".yrl" -> 
+            io:format("Generating yecc file: ~s~n", [File]),
+            yecc:file(File);
+        ".app" ->
+            EbinDir = merlkefile_api:ebin_dir(),
+            io:format("Copying ~s to ~s~n", [File, EbinDir]),
+            {ok, _ByteCount} = file:copy(
+                File, 
+                string:join([EbinDir, filename:basename(File)], "/")
+            );
+        _      -> 
             nope
-    end.
+    end;
+
+generate(_) ->
+    nope.
 
 edoc() ->
     io:format("Generating edocs from ~p to ~p with options: ~p~n", 
