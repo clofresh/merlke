@@ -127,13 +127,18 @@ start() ->
         end,
         [string:join([EbinDir, NF], "/") || NF <- NewFiles]                    
     ),
-
-    receive 
-        Result ->
-            io:format("Result: ~p~n", [Result])
-    end,
+    
+    wait(),
 
     io:format("Done.~n").
+    
+wait() ->
+    receive 
+        Result ->
+            io:format("~n**** Received: ~p~n", [Result])
+    end,
+    wait().
+
 
 dist() ->
     io:format("dist~n").
