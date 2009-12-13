@@ -57,14 +57,14 @@ traversal(FT = {regular, _File}, [], FileFun, FilterFun) ->
 traversal(FT = {directory, Dir}, [], FileFun, FilterFun) ->
     case FilterFun(FT) of
         allow ->
-            FileFun(FT),
             case file:list_dir(Dir) of
                 {ok, []} -> 
                     ok;
                 {ok, NewFiles} -> 
                     [Next | Rest] = [lists:concat([Dir, "/", F]) 
                                         || F <- NewFiles],
-                    traversal(get_file_info(Next), Rest, FileFun, FilterFun);
+                    traversal(get_file_info(Next), Rest, FileFun, FilterFun),
+                    FileFun(FT); % Not tail-recursive anymore ;(
                 {error, Reason} ->
                     io:format("Error: ~p~n", [Reason]),
                     {error, Reason}
@@ -77,16 +77,15 @@ traversal({_Other, _File}, [], _FileFun, _FilterFun) ->
     nope;
 
 traversal(FT = {regular, _File}, [Next | Rest], FileFun, FilterFun) ->
+    traversal(get_file_info(Next), Rest, FileFun, FilterFun),
     case FilterFun(FT) of
-        allow -> FileFun(FT);
+        allow -> FileFun(FT); % Not tail-recursive anymore ;(
         _     -> skipped
-    end,
-    traversal(get_file_info(Next), Rest, FileFun, FilterFun);
+    end;
     
 traversal(FT = {directory, Dir}, [Next | Rest], FileFun, FilterFun) ->
     case FilterFun(FT) of
         allow ->
-            FileFun(FT),
             case file:list_dir(Dir) of
                 {ok, NewFiles} -> 
                     traversal(get_file_info(Next), 
@@ -98,7 +97,8 @@ traversal(FT = {directory, Dir}, [Next | Rest], FileFun, FilterFun) ->
                 {error, Reason} ->
                     io:format("Error: ~p~n", [Reason]),
                     traversal(get_file_info(Next), Rest, FileFun, FilterFun)
-            end;
+            end,
+            FileFun(FT); % Not tail-recursive anymore ;(
         _ ->
             traversal(get_file_info(Next), Rest, FileFun, FilterFun)
     end;

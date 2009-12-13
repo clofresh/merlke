@@ -13,22 +13,22 @@
 -include("include/merlke.hrl").
 
 clean() -> 
-    merlke_files:traversal(
-        merlkefile_api:ebin_dir(), 
-        fun
-            ({regular, File}) ->
-                DeleteFun = fun(F) ->
-                    io:format("Removing ~s~n", [F]),
-                    file:delete(F)
-                end,
-                case filename:extension(File) of
-                    ".beam" -> DeleteFun(File);
-                    ".app"  -> DeleteFun(File);
-                    _       -> nope
-                end;    
-            (_) ->
-                nope
-        end).
+    DeleteFun = fun
+        ({regular, File}) ->
+            io:format("Removing ~s~n", [File]),
+            ok = file:delete(File);
+        ({directory, Dir}) ->
+            io:format("Removing ~s~n", [Dir]),
+            ok = file:del_dir(Dir)
+    end,
+    
+    lists:foreach(
+        fun(D) -> 
+            merlke_files:traversal(D, DeleteFun)
+        end, 
+        [merlkefile_api:ebin_dir(), 
+         merlkefile_api:edoc_dir()]
+    ).
 
 compile() ->
     
