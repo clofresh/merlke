@@ -1,5 +1,5 @@
 -module(merlke_files).
--export([traversal/4, prepare_overview/0]).
+-export([traversal/3, prepare_overview/0]).
 
 -include("include/merlke.hrl").
 -include_lib("kernel/include/file.hrl").
@@ -41,6 +41,9 @@ prepare_overview() ->
                     end
             end
     end.
+
+traversal(Root, FileFun, FilterFun) ->
+    traversal(get_file_info(Root), [], FileFun, FilterFun).
 
 traversal(FT = {regular, File}, [], FileFun, FilterFun) ->
     case FilterFun(FT) of

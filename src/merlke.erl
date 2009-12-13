@@ -36,8 +36,7 @@ compile() ->
 generate() ->
     EbinDir = filename:absname(merlkefile_api:ebin_dir()),
     merlke_files:traversal(
-        {directory, "."}, 
-        [], 
+        ".", 
         fun generate/1,
         fun(FT) ->
             case FT of
