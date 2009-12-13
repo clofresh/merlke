@@ -63,10 +63,12 @@ generate({regular, File}) ->
     case filename:extension(File) of
         ".xrl" -> 
             io:format("Generating leex file: ~s~n", [File]),
-            leex:file(File);
+            {ok, Generated} = leex:file(File),
+            up_to_date = make:files([Generated], ?MAKE_OPTIONS);
         ".yrl" -> 
             io:format("Generating yecc file: ~s~n", [File]),
-            yecc:file(File);
+            {ok, Generated} = yecc:file(File),
+            up_to_date = make:files([Generated], ?MAKE_OPTIONS);
         ".app" ->
             EbinDir = merlkefile_api:ebin_dir(),
             io:format("Copying ~s to ~s~n", [File, EbinDir]),
