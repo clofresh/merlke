@@ -10,8 +10,7 @@
     dist/0
 ]).
 
--define(MAKE_OPTIONS, [{outdir, merlkefile_api:ebin_dir()}]).
--define(EDOC_OPTIONS, [{dir, merlkefile_api:edoc_dir()}]).
+-include("include/merlke.hrl").
 
 clean() -> 
     lists:foreach(fun(Module) -> 
@@ -70,8 +69,13 @@ generate(File) ->
     end.
 
 edoc() ->
-    io:format("Generating edocs from ~p to ~p~n", [merlkefile_api:src_dir(), 
-                                                   merlkefile_api:edoc_dir()]),
+    io:format("Generating edocs from ~p to ~p with options: ~p~n", 
+              [merlkefile_api:src_dir(), 
+               merlkefile_api:edoc_dir(),
+               ?EDOC_OPTIONS]),
+    
+    merlke_files:prepare_overview(),
+    
     edoc:files([lists:concat([merlkefile_api:src_dir(), "/", Module, ".erl"]) 
                     || Module <- merlkefile_api:modules()],
                ?EDOC_OPTIONS).

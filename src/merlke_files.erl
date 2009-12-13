@@ -1,7 +1,46 @@
 -module(merlke_files).
--export([traversal/4]).
+-export([traversal/4, prepare_overview/0]).
 
+-include("include/merlke.hrl").
 -include_lib("kernel/include/file.hrl").
+
+prepare_overview() ->
+    TargetOverviewFile = proplists:get_value(overview, ?EDOC_OPTIONS),
+    case get_file_info("overview.edoc") of 
+        {regular, F} -> file:copy(F, TargetOverviewFile);
+        _ -> 
+            case get_file_info(string:join([merlkefile_api:src_dir(), "overview.edoc"], "/")) of
+                {regular, F} -> file:copy(F, TargetOverviewFile);
+                _ -> 
+                    MarkdownFilesSet = sets:from_list(
+                                         ["README." ++ Ext 
+                                            || Ext <- ["markdown",
+                                                       "md",
+                                                       "mdown",
+                                                       "mkd",
+                                                       "mkdn"]]),
+                    {ok, RootFiles} = file:list_dir("."),
+                    RootFilesSet = sets:from_list(RootFiles),
+                    case sets:to_list(sets:union(MarkdownFilesSet, RootFilesSet)) of
+                        [] -> got_nothing;
+                        [F|_] -> 
+                            case os:find_executable(?MARKDOWN_SCRIPT) of
+                                false ->
+                                    io:format(
+                                        "Warning: Could not translate markdown file ~s to ~s (~s not in PATH)~n",
+                                        [F, TargetOverviewFile, ?MARKDOWN_SCRIPT]
+                                    );
+                                MarkdownFullPath -> 
+                                    Html = os:cmd(string:join([MarkdownFullPath, F], " ")),
+                                    file:make_dir(merlkefile_api:edoc_dir()),
+                                    {ok, IoDevice} = file:open(TargetOverviewFile, write),
+                                    io:put_chars(IoDevice, "@doc "),
+                                    io:put_chars(IoDevice, Html),
+                                    ok = file:close(IoDevice)
+                            end
+                    end
+            end
+    end.
 
 traversal(FT = {regular, File}, [], FileFun, FilterFun) ->
     case FilterFun(FT) of
@@ -68,7 +107,6 @@ get_file_info(File) ->
                 {ok, FileInfo}  -> 
                     {FileInfo#file_info.type, File};
                 {error, Reason} -> 
-                    io:format("Error: ~p~n", [Reason]),
                     {error, Reason}
             end
     end.

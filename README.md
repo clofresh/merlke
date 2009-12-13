@@ -11,6 +11,8 @@ Run:
 
 Then put scripts/merlke in your PATH
 
+I also highly recommend installing [Markdown](http://daringfireball.net/projects/markdown/) if you want to be able to translate README.md files into EDoc overviews.
+
 Usage
 -----
 Assuming you follow the standard Erlang file conventions, you can just run:
