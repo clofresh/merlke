@@ -102,7 +102,7 @@ dialyzer() ->
 
 test() ->
     eunit:test([list_to_atom(M) 
-                    || M <- merlkefile_api:modules()]).
+                    || M <- merlkefile_api:modules()], [verbose]).
 
 start() ->
     EbinDir = merlkefile_api:ebin_dir(),
