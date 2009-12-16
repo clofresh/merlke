@@ -101,8 +101,11 @@ dialyzer() ->
     io:format("dialyzer~n").
 
 test() ->
-    eunit:test([list_to_atom(M) 
-                    || M <- merlkefile_api:modules()], [verbose]).
+    case eunit:test([list_to_atom(M) 
+                    || M <- merlkefile_api:modules()], [verbose]) of
+        ok -> ok;
+        _ -> halt(1)
+    end.
 
 start() ->
     EbinDir = merlkefile_api:ebin_dir(),
