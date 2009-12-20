@@ -41,9 +41,13 @@ then
     fi
 fi
 
-
-
-erl -pa "$MERLKE_EBIN" -pa "$MERLKE_WORKSPACE" -pa ebin $NOSHELL -run merlke_runner execute $@ -run init stop
+erl -pa "$MERLKE_EBIN"            \
+    -pa "$MERLKE_WORKSPACE"       \
+    -pa deps/*/ebin               \
+    -pa ebin                      \
+    $NOSHELL                      \
+    -run merlke_runner execute $@ \
+    -run init stop
 
 
 
